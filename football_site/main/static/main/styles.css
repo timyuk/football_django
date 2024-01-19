@@ -1,0 +1,305 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+.bracket {
+    display: flex;
+    /*flex-direction: column;*/
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+.round {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+    width: 15%;
+}
+.round_2 {
+    margin-right: 120px;
+}
+.round_4 {
+    margin-left: 120px;
+}
+.game {
+    position: relative;
+    width: 70%;
+    height: 100px;
+    margin: 10px;
+    border: 1px solid #333;
+    padding: 5%;
+    background-color: #fff;
+    box-shadow: none;
+    transition: 0.1s;
+
+}
+.game_6{
+    margin-left: 250px;
+}
+.game_11{
+    margin-right: 250px;
+}
+.team {
+    position: absolute;
+    bottom: 10px;
+    height: 25px;
+    display: flex;
+    width: 90%;
+    left: 5%;
+
+}
+.team_home {
+    bottom: 45px;
+}
+
+.not_visible {
+    visibility: hidden;
+    background-color: red;
+}
+
+.flag {
+    height: 20px;
+    width: 30px;
+    background-size: contain;
+    /*border: 1px solid black;*/
+    box-sizing: border-box;
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+.country{
+    margin-left: 5px;
+    
+}
+.score {
+    margin-left: auto;
+    margin-right: 0;
+}
+.winner {
+    border-bottom: 3px solid #87C38F ;
+}
+.loser {
+    border-bottom: 3px solid #EA868C;
+}
+
+.game_info {
+    font-size: 11px;
+}
+.game:hover{
+    cursor: pointer;
+    box-shadow: 0px 10px 25px -5px rgba(0,0,0,0.2);
+}
+.game:active{
+    box-shadow: none;
+}
+
+.statistics{
+    width: 100%;
+    background-color: #ddd;
+    margin-top: 10px;
+}
+
+.match_teams {
+
+
+}
+
+.match_teams_info {
+    height: 350px;
+    background-color: #eee;
+    width: 90%;
+    margin: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+.home_team_info{
+    left: 0;
+}
+.home_team_info, .away_team_info{
+    width: 25%;
+    height: 150px;
+    background-color: #fff;
+    position: absolute;
+}
+.home_team_info_name, .away_team_info_name{
+    height: 50px;
+    background-color: #1ff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.away_team_info{
+    right: 0;
+
+}
+
+.field{
+    height: 350px;
+    width: 45%;
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+}
+
+.field_home, .field_away {
+    height: 90%;
+    width: 50%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-image: url('https://johnburnmurdoch.github.io/football-pitch-tracker/half.png');
+}
+
+.field_home{
+
+}
+.field_away{
+    background-color: greenyellow;
+    background-size: 100% 100%;
+    transform: rotate(180deg);
+    margin-top: 0.9px;
+}
+.field_home{
+    background-color: green;
+
+    background-size: 100% 100%;
+}
+
+.field_line {
+    width: 16%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.player {
+    border-radius: 50%;
+    margin-top: 16%;
+    margin-bottom: 16%;
+    height: 8%;
+    aspect-ratio: 1/1;
+    background-color: red;
+}
+.field_away > .field_line > .player {
+    background-color: #fff;
+}
+
+
+svg {
+    position: absolute;
+}
+.bidir{
+    width: 50%;
+    margin: auto;
+}
+.bidir_line {
+    height: 35px;
+    /*background-color: #000;*/
+    display: flex;
+    width: 100%;
+    position: relative;
+}
+
+.bidir_container_right, .bidir_container_left{
+    width: 49%;
+    height: 100%;
+    /*background-color: #f1f;*/
+    position: absolute;
+    margin-left: 1%;
+    margin-right: 1%;
+    bottom: 0;
+}
+.bidir_left, .bidir_right{
+    bottom: 0;
+    height: 20px;
+    width: 100%;
+    background-color: #fff;
+    position: absolute;
+
+}
+.bidir_title_left, .bidir_title_right {
+    position: absolute;
+    font-size: 12px;
+}
+
+
+.bidir_container_right{
+    left: 50%;
+}
+.bidir_right{
+    left: 0;
+    border-radius: 12px 12px 12px 12px;
+}
+.bidir_title_right{
+    left:1%
+}
+.bidir_container_left{
+    right: 50%;
+}
+.bidir_left{
+    right: 0;
+    border-radius: 12px 12px 12px 12px;
+}
+.bidir_title_left{
+    right:1%
+}
+.bidir_inner_left, .bidir_inner_right {
+    position: absolute;
+    height: 100%;
+    background-color: darkgreen;
+}
+.bidir_inner_left {
+    right: 0;
+    border-radius: 12px 12px 12px 12px;
+}
+.bidir_inner_right {
+    left: 0;
+    border-radius: 12px 12px 12px 12px;
+
+}
+
+.bidir_title{
+    width: 100%;
+    text-align: center;
+    margin: auto;
+    margin-top: 5px;
+}
+
+.comp_table_stat_home{
+    text-align: center;
+    width: 35%;
+}
+.comp_table_stat_away{
+    text-align: center;
+    width: 35%;
+}
+.comp_table_stat_name{
+    text-align: center;
+    width: 30%;
+
+}
+.comp_tables{
+    margin: auto;
+    margin-top: 20px;
+    width: 80%;
+    display: flex;
+    height: 150px;
+}
+.comp_table{
+    table-layout: fixed;
+    margin: auto;
+    width: 30%;
+
+}
+.comp_table_3{
+    right: 0;
+}

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tournament Bracket</title>
+  <link rel="stylesheet" href="{% static 'main/styles.css' %}">
+</head>
+<body>
+    <div class="bracket">
+        <div class="round">
+            <div class="group">
+
+            </div>
+            <div class="group">
+
+            </div>
+            <div class="group">
+
+            </div>
+            <div class="group">
+
+            </div>
+        </div>
+        {% for round in games.rounds %}
+        <div class="round round_{{ forloop.counter }}">
+            {%if forloop.counter == 3 %}
+                <div class="game not_visible">
+                    <div class="team">Final Winner</div>
+                    <div class="team">Final Loser</div>
+                </div>
+            {%endif%}
+            {% for game in round %}
+                <div class="game game_{{game.order}}" id = "game_{{game.order}}">
+                    <div class="game_info">
+                        <div class = 'phase'>
+                            {{game.phase}}
+                        </div>
+<!--                        <div class="date">-->
+<!--                            {{game.date}}-->
+<!--                        </div>-->
+                    </div>
+                    <div class="team {{game.status_home}} team_home">
+                        <div class="flag" style="background-image: url('{{game.flag_home}}')"></div>
+                        <div class="country">{{game.country_home}}</div>
+                        <div class="score">{{game.score_home}}</div>
+                    </div>
+                    <div class="team {{game.status_away}}">
+                        <div class="flag" style="background-image: url('{{game.flag_away}}')"></div>
+                        <div class="country">{{game.country_away}}</div>
+                        <div class="score">{{game.score_away}}</div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+        <div class="round">
+            <div class="group">
+
+            </div>
+            <div class="group">
+
+            </div>
+            <div class="group">
+
+            </div>
+            <div class="group">
+
+            </div>
+        </div>
+    </div>
+    {% include 'main/includes/statistics.html' %}
+
+</body>
+<script>
+
+
+    let dimensions = []
+    let matches = JSON.parse('{{ games.all|safe }}');
+    let match_teams_data = JSON.parse('{{ match_teams|safe }}');
+    let match_data = JSON.parse('{{ match_data|safe }}');
+
+    let body = document.getElementsByTagName('body')[0]
+    let svg_node = document.createElementNS('http://www.w3.org/2000/svg','svg');
+
+    svg_node.setAttribute('width','100%')
+    svg_node.setAttribute('height','100%')
+    body.insertBefore(svg_node, body.firstChild)
+
+    for (let i = 0; i < matches.length; i++) {
+        console.log('game_' + matches[i].order)
+        const current_node = document.getElementById('game_' + matches[i].order)
+        var rect = current_node.getBoundingClientRect();
+        dimensions.push([(rect.right + rect.left)/2, (rect.top + rect.bottom)/2])
+        current_node.addEventListener('click', function () {
+            update_graphs(matches[i])
+        })
+    }
+    render_line(dimensions[0], dimensions[4])
+    render_line(dimensions[1], dimensions[4])
+    render_line(dimensions[2], dimensions[6])
+    render_line(dimensions[3], dimensions[6])
+    render_line(dimensions[4], dimensions[5])
+    render_line(dimensions[6], dimensions[5])
+    render_line(dimensions[5], dimensions[7])
+    render_line(dimensions[7], dimensions[10])
+    render_line(dimensions[10], dimensions[9])
+    render_line(dimensions[10], dimensions[11])
+    render_line(dimensions[9], dimensions[12])
+    render_line(dimensions[9], dimensions[13])
+    render_line(dimensions[11], dimensions[14])
+    render_line(dimensions[11], dimensions[15])
+    function update_graphs(data){
+        const match_teams = document.getElementById('match_teams')
+        match_teams.innerHTML = '';
+
+        let current_data = match_data[data.teamid+47]
+
+        const match_team_statistics = document.getElementById('match_team_statistics')
+        match_team_statistics.innerHTML = '';
+
+        const match_teams_info = get_match_teams_info(current_data)
+        match_teams.appendChild(match_teams_info)
+
+        const bidir = get_bidir(current_data)
+        match_team_statistics.appendChild(bidir)
+
+        const comp_tables = get_comp_tables(current_data)
+        match_team_statistics.appendChild(comp_tables)
+
+    }
+
+    function render_line(first_block, second_block){
+        x1 = first_block[0]+ document.documentElement.scrollLeft
+        y1 = first_block[1] + document.documentElement.scrollTop
+        x2 = second_block[0]+ document.documentElement.scrollLeft
+        y2 = second_block[1]+ document.documentElement.scrollTop
+        let line_node = document.createElementNS('http://www.w3.org/2000/svg','line');
+        line_node.setAttribute('x1',x1)
+        line_node.setAttribute('y1',y1)
+        line_node.setAttribute('x2', x2)
+        line_node.setAttribute('y2', y2)
+        line_node.setAttribute('stroke', 'black')
+        svg_node.appendChild(line_node)
+    }
+    function get_match_teams_info(current_data){
+        const match_teams_info = document.createElement('div')
+        match_teams_info.classList.add('match_teams_info')
+
+        const home_team_info = document.createElement('div')
+        home_team_info.classList.add('home_team_info')
+
+        const home_team_info_name = document.createElement('div')
+        home_team_info_name.classList.add('home_team_info_name')
+        home_team_info_name.innerText = current_data.home_team
+        home_team_info.appendChild(home_team_info_name)
+
+        const home_team_info_data = document.createElement('div')
+        home_team_info_data.classList.add('home_team_info_data')
+        home_team_info_data.innerText = 'data'
+        home_team_info.appendChild(home_team_info_data)
+        match_teams_info.appendChild(home_team_info)
+
+        const field = document.createElement('div')
+        field.classList.add('field')
+
+
+        const field_home = get_field_half('1-' + current_data.home_formation)
+        field_home.classList.add('field_home')
+        const field_away = get_field_half('1-' + current_data.away_formation)
+        field_away.classList.add('field_away')
+        field.appendChild(field_home)
+        field.appendChild(field_away)
+        match_teams_info.appendChild(field)
+
+        const away_team_info = document.createElement('div')
+        away_team_info.classList.add('away_team_info')
+
+        const away_team_info_name = document.createElement('div')
+        away_team_info_name.classList.add('away_team_info_name')
+        away_team_info_name.innerText = current_data.away_team
+        away_team_info.appendChild(away_team_info_name)
+
+        const away_team_info_data = document.createElement('div')
+        away_team_info_data.classList.add('away_team_info_data')
+        away_team_info_data.innerText = 'data'
+        away_team_info.appendChild(away_team_info_data)
+        match_teams_info.appendChild(away_team_info)
+        return match_teams_info
+
+
+
+
+    }
+    function get_field_half(formation){
+        console.log(formation)
+        const field_home = document.createElement('div')
+        formation = formation.split('-')
+
+        let i = 0;
+        while (i < formation.length){
+            const field_line = document.createElement('div')
+            field_line.classList.add('field_line')
+            for (let j = 0; j<formation[i]; j++){
+                const player = document.createElement('player')
+                player.classList.add('player')
+                field_line.appendChild(player)
+            }
+            field_home.appendChild(field_line)
+            i++
+        }
+        return field_home
+    }
+
+    function get_comp_tables(current_data){
+        const comp_tables = document.createElement('div')
+        comp_tables.classList.add('comp_tables')
+        const first_table = get_comp_table(['fouls', 'corners', 'crosses'], current_data)
+        first_table.classList.add('comp_table_1')
+        comp_tables.appendChild(first_table)
+
+        const second_table = get_comp_table(['touches', 'tackles', 'interceptions'], current_data)
+        second_table.classList.add('comp_table_2')
+        comp_tables.appendChild(second_table)
+
+        const third_table = get_comp_table(['aerials_won', 'offsides', 'throw_ins'], current_data)
+        third_table.classList.add('comp_table_3')
+        comp_tables.appendChild(third_table)
+        return comp_tables
+    }
+    function get_comp_table(stat_names, current_data){
+        const comp_table = document.createElement('table')
+        comp_table.classList.add('comp_table')
+
+        const tr_title = document.createElement('tr')
+        tr_title.classList.add('comp_table_title')
+        const th_home = document.createElement('th')
+        th_home.classList.add('comp_table_stat_home')
+        th_home.innerText = current_data.home_team
+
+        const th_none = document.createElement('th')
+        th_none.classList.add('comp_table_stat_name')
+        const th_away = document.createElement('th')
+        th_away.classList.add('comp_table_stat_away')
+        th_away.innerText = current_data.away_team
+        tr_title.appendChild(th_home)
+        tr_title.appendChild(th_none)
+        tr_title.appendChild(th_away)
+        comp_table.appendChild(tr_title)
+
+        let i =0;
+        while (i < stat_names.length){
+            const stat_name = stat_names[i]
+            const tr_row = document.createElement('tr')
+            const td_home = document.createElement('td')
+            td_home.classList.add('comp_table_stat_home')
+            td_home.innerText = current_data['home_' + stat_name]
+            const td_stat_name = document.createElement('td')
+            td_stat_name.classList.add('comp_table_stat_name')
+            td_stat_name.innerText = stat_name.replace('_', ' ')
+            const td_away = document.createElement('td')
+            td_away.classList.add('comp_table_stat_away')
+            td_away.innerText = current_data['away_' + stat_name]
+            tr_row.appendChild(td_home)
+            tr_row.appendChild(td_stat_name)
+            tr_row.appendChild(td_away)
+            comp_table.appendChild(tr_row)
+            i++
+        }
+
+        return comp_table
+
+
+    }
+    function get_bidir_line(left_width, left_inner_width, right_width, right_inner_width, left_text, right_text){
+        console.log(left_text)
+        const bidir_line = document.createElement("div")
+        bidir_line.classList.add('bidir_line')
+
+        const bidir_container_left = document.createElement("div")
+        bidir_container_left.classList.add('bidir_container_left')
+
+        const bidir_container_right = document.createElement("div")
+        bidir_container_right.classList.add('bidir_container_right')
+
+        const bidir_left = document.createElement("div")
+        bidir_left.classList.add('bidir_left')
+        bidir_left.style.width = left_width + '%'
+
+        const bidir_right = document.createElement("div")
+        bidir_right.classList.add('bidir_right')
+        bidir_right.style.width = right_width + '%'
+
+
+        const bidir_inner_left = document.createElement("div")
+        bidir_inner_left.classList.add('bidir_inner_left')
+        bidir_inner_left.style.width = left_inner_width + '%'
+
+        const bidir_inner_right = document.createElement("div")
+        bidir_inner_right.classList.add('bidir_inner_right')
+        bidir_inner_right.style.width = right_inner_width + '%'
+
+
+        const bidir_title_left = document.createElement("div")
+        bidir_title_left.classList.add('bidir_title_left')
+        bidir_title_left.innerHTML = left_text
+
+        const bidir_title_right = document.createElement("div")
+        bidir_title_right.classList.add('bidir_title_right')
+        bidir_title_right.innerHTML = right_text
+
+
+        bidir_left.appendChild(bidir_inner_left)
+        bidir_right.appendChild(bidir_inner_right)
+        bidir_container_left.appendChild(bidir_title_left)
+        bidir_container_left.appendChild(bidir_left)
+        bidir_container_right.appendChild(bidir_title_right)
+        bidir_container_right.appendChild(bidir_right)
+        bidir_line.appendChild(bidir_container_left)
+        bidir_line.appendChild(bidir_container_right)
+        return bidir_line
+    }
+
+    function get_bidir(current_data){
+        const bidir = document.createElement("div")
+        bidir.classList.add('bidir')
+
+
+
+        const possession_title = get_bidir_title('Possession')
+        const possession_line = get_perc_line(current_data.home_possession, current_data.away_possession)
+        bidir.appendChild(possession_title)
+        bidir.appendChild(possession_line)
+
+        const passes_title = get_bidir_title('Successful Passes')
+        const passes_line = get_number_line(current_data.home_attempted_pases, current_data.away_attempted_pases, current_data.home_completed_passes, current_data.away_completed_passes)
+        bidir.appendChild(passes_title)
+        bidir.appendChild(passes_line)
+
+        const sot_title = get_bidir_title('Shots On Target')
+        const sot_line = get_number_line(current_data.home_total_shots, current_data.away_total_shots, current_data.home_sot, current_data.away_sot)
+        bidir.appendChild(sot_title)
+        bidir.appendChild(sot_line)
+
+        const scores = get_scores(current_data.score)
+        const saves_title = get_bidir_title('Saves')
+        const saves_line = get_number_line(current_data.away_sot, current_data.home_sot,current_data.home_saves, current_data.away_saves)
+        bidir.appendChild(saves_title)
+        bidir.appendChild(saves_line)
+
+        return bidir
+    }
+
+    function get_number_line(home_total, away_total, home_succ, away_succ ){
+
+        max_value = Math.max(home_total, away_total)
+        let proc_all_left = Math.round(100*(home_total/max_value))
+        let proc_all_right =  Math.round(100*(away_total/max_value))
+        let proc_from_left = Math.round(100*(home_succ/home_total))
+        let proc_from_right = Math.round(100*(away_succ/away_total))
+
+        var left_text =  home_succ + '/' + home_total + ' - ' + proc_from_left+'%'
+        var right_text = away_succ + '/' + away_total + ' - ' +proc_from_right + '%'
+        return get_bidir_line(proc_all_left, proc_from_left, proc_all_right, proc_from_right, left_text, right_text)
+    }
+    function get_perc_line(home_total, away_total ){
+        var left_text = home_total +'%'
+        var right_text = away_total + '%'
+        return get_bidir_line(100, home_total, 100, away_total, left_text, right_text)
+    }
+    function get_bidir_title(title){
+        const title_node = document.createElement("div")
+        title_node.innerText = title
+        title_node.classList.add('bidir_title')
+        return title_node
+    }
+    function get_scores(score){
+
+        if (score.indexOf('(')+1) {
+            let divis = score.indexOf('–')
+            let full_score_home = score.slice(0,divis)
+            let full_score_away = score.slice(divis+1)
+            let divis_home = full_score_home.indexOf(')')
+            var score_home = full_score_home.slice(divis_home+2)
+            var pen_home = full_score_home.slice(1, divis_home)
+            let divis_away = full_score_away.indexOf('(')
+            var score_away = full_score_away.slice(0,divis_away-1)
+            var pen_away = full_score_away.slice(divis_away+1, -1)
+
+        } else {
+            let divis = score.indexOf('–')
+            var score_home = score.slice(0,divis)
+            var score_away = score.slice(divis+1)
+            var pen_home = null
+            var pen_away = null
+
+        }
+        return [score_home, score_away, pen_home, pen_away]
+    }
+</script>
+</html>
