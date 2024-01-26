@@ -1,16 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
+
+html {
+    overflow-y: scroll;
+}
+
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Roboto Mono';
     margin: 0;
     padding: 0;
     background-color: #f4f4f4;
+
 }
+
 
 .bracket {
     display: flex;
     /*flex-direction: column;*/
     align-items: center;
     justify-content: center;
-    height: 100vh;
+    height: 110vh;
+    /*margin-top: 50px;*/
 }
 
 .round {
@@ -19,31 +28,41 @@ body {
     align-items: center;
     margin-bottom: 20px;
     width: 15%;
+    margin-left: 5px;
+    margin-right: 5px;
+    position: relative;
 }
+
 .round_2 {
-    margin-right: 120px;
+    padding-right: 6%;
 }
+
 .round_4 {
-    margin-left: 120px;
+    padding-left: 6%;
 }
+
 .game {
     position: relative;
-    width: 70%;
+    width: 80%;
     height: 100px;
-    margin: 10px;
+    margin: 20px;
     border: 1px solid #333;
     padding: 5%;
     background-color: #fff;
     box-shadow: none;
     transition: 0.1s;
+    font-size: 15px;
 
 }
-.game_6{
-    margin-left: 250px;
+
+.game_6 {
+    margin-left: 90%;
 }
-.game_11{
-    margin-right: 250px;
+
+.game_11 {
+    margin-right: 90%;
 }
+
 .team {
     position: absolute;
     bottom: 10px;
@@ -53,6 +72,7 @@ body {
     left: 5%;
 
 }
+
 .team_home {
     bottom: 45px;
 }
@@ -71,17 +91,20 @@ body {
     background-position: center center;
     background-repeat: no-repeat;
 }
-.country{
+
+.country {
     margin-left: 5px;
-    
 }
+
 .score {
     margin-left: auto;
     margin-right: 0;
 }
+
 .winner {
-    border-bottom: 3px solid #87C38F ;
+    border-bottom: 3px solid #87C38F;
 }
+
 .loser {
     border-bottom: 3px solid #EA868C;
 }
@@ -89,28 +112,35 @@ body {
 .game_info {
     font-size: 11px;
 }
-.game:hover{
+
+.game:hover {
     cursor: pointer;
-    box-shadow: 0px 10px 25px -5px rgba(0,0,0,0.2);
+    box-shadow: 0px 10px 25px -5px rgba(0, 0, 0, 0.2);
 }
-.game:active{
+
+.game:active {
     box-shadow: none;
 }
 
-.statistics{
+.statistics {
     width: 100%;
-    background-color: #ddd;
-    margin-top: 10px;
+    /*background-color: #ddd;*/
 }
 
 .match_teams {
+    margin-top: 80px;
 
 
+}
+
+.match_teams_header {
+    text-align: center;
+    font-size: 25px;
 }
 
 .match_teams_info {
     height: 350px;
-    background-color: #eee;
+    /*background-color: #eee;*/
     width: 90%;
     margin: auto;
     display: flex;
@@ -118,58 +148,78 @@ body {
     align-items: center;
     position: relative;
 }
-.home_team_info{
+
+.home_team_info {
     left: 0;
 }
-.home_team_info, .away_team_info{
+
+.home_team_info, .away_team_info {
     width: 25%;
-    height: 150px;
+    height: 250px;
     background-color: #fff;
     position: absolute;
+    border: 1px solid #000;
+    padding: 10px;
+    box-sizing: border-box;
+
 }
-.home_team_info_name, .away_team_info_name{
+
+.home_team_info_name, .away_team_info_name {
     height: 50px;
-    background-color: #1ff;
+    background-color: #fff;
     display: flex;
     justify-content: center;
     align-items: center;
+    font-size: 30px;
 }
 
-.away_team_info{
+.away_team_info {
     right: 0;
 
 }
 
-.field{
-    height: 350px;
+.home_team_info_data, .away_team_info_data {
+    height: 180px;
+    display: flex;
+    flex-direction: column;
+    /*align-items: center;*/
+    justify-content: center;
+}
+
+.field_bidir {
     width: 45%;
-    background-color: #fff;
+}
+
+.field {
+    height: 350px;
+    /*background-color: #fff;*/
     display: flex;
     align-items: center;
 }
 
 .field_home, .field_away {
-    height: 90%;
+    height: 300px;
     width: 50%;
     display: flex;
     justify-content: space-between;
     align-items: center;
     background-image: url('https://johnburnmurdoch.github.io/football-pitch-tracker/half.png');
+    background-repeat: no-repeat;
 }
 
-.field_home{
 
-}
-.field_away{
-    background-color: greenyellow;
+.field_away {
     background-size: 100% 100%;
-    transform: rotate(180deg);
-    margin-top: 0.9px;
+    background-position: top;
+
+    transform: scaleX(-1);
 }
-.field_home{
-    background-color: green;
+
+.field_home {
+    background-position: top;
 
     background-size: 100% 100%;
+
 }
 
 .field_line {
@@ -188,7 +238,11 @@ body {
     height: 8%;
     aspect-ratio: 1/1;
     background-color: red;
+    border: 1px solid black;
+    box-shadow: 0px 10px 20px 0px rgba(0, 0, 0, 0.2);
+
 }
+
 .field_away > .field_line > .player {
     background-color: #fff;
 }
@@ -197,10 +251,12 @@ body {
 svg {
     position: absolute;
 }
-.bidir{
-    width: 50%;
+
+.bidir {
+    width: 60%;
     margin: auto;
 }
+
 .bidir_line {
     height: 35px;
     /*background-color: #000;*/
@@ -209,7 +265,7 @@ svg {
     position: relative;
 }
 
-.bidir_container_right, .bidir_container_left{
+.bidir_container_right, .bidir_container_left {
     width: 49%;
     height: 100%;
     /*background-color: #f1f;*/
@@ -218,7 +274,8 @@ svg {
     margin-right: 1%;
     bottom: 0;
 }
-.bidir_left, .bidir_right{
+
+.bidir_left, .bidir_right {
     bottom: 0;
     height: 20px;
     width: 100%;
@@ -226,80 +283,260 @@ svg {
     position: absolute;
 
 }
+
 .bidir_title_left, .bidir_title_right {
     position: absolute;
     font-size: 12px;
 }
 
 
-.bidir_container_right{
+.bidir_container_right {
     left: 50%;
 }
-.bidir_right{
+
+.bidir_right {
     left: 0;
     border-radius: 12px 12px 12px 12px;
 }
-.bidir_title_right{
-    left:1%
+
+.bidir_title_right {
+    left: 1%
 }
-.bidir_container_left{
+
+.bidir_container_left {
     right: 50%;
 }
-.bidir_left{
+
+.bidir_left {
     right: 0;
     border-radius: 12px 12px 12px 12px;
 }
-.bidir_title_left{
-    right:1%
+
+.bidir_title_left {
+    right: 1%
 }
+
 .bidir_inner_left, .bidir_inner_right {
     position: absolute;
     height: 100%;
-    background-color: darkgreen;
 }
+
 .bidir_inner_left {
     right: 0;
     border-radius: 12px 12px 12px 12px;
 }
+
 .bidir_inner_right {
     left: 0;
     border-radius: 12px 12px 12px 12px;
 
 }
 
-.bidir_title{
+.bidir_title {
     width: 100%;
     text-align: center;
     margin: auto;
     margin-top: 5px;
 }
 
-.comp_table_stat_home{
-    text-align: center;
+.comp_table_stat_home, .comp_table_stat_away {
     width: 35%;
+    /*background-color: #fff;*/
 }
-.comp_table_stat_away{
-    text-align: center;
-    width: 35%;
-}
-.comp_table_stat_name{
+
+.comp_table_stat_name {
     text-align: center;
     width: 30%;
+    /*background-color: #fff;*/
+
 
 }
-.comp_tables{
+
+.comp_tables {
     margin: auto;
-    margin-top: 20px;
-    width: 80%;
+    margin-top: 30px;
+    width: 91%;
     display: flex;
     height: 150px;
+    background-color: #ddd;
 }
-.comp_table{
+
+.comp_table {
     table-layout: fixed;
     margin: auto;
-    width: 30%;
+    width: 33%;
 
 }
-.comp_table_3{
+
+.comp_table_3 {
     right: 0;
+}
+
+.td_home_value, .td_away_value {
+    width: fit-content;
+    padding: 2px 10px 2px 10px;
+    text-align: center;
+    margin: auto;
+
+}
+
+.larger_value {
+    border-radius: 12px;
+}
+.scatter_sankey_container{
+    width: 90%;
+    margin: auto;
+    display: flex;
+    justify-content: space-around;
+    height: 600px;
+}
+.scatter_container, .sankey_container {
+    width: 45%;
+    margin: auto;
+
+}
+#sankey_canvas{
+    height: 550px;
+}
+#scatter_canvas {
+    height: 400px;
+}
+
+
+.referee_venue_container {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 10px;
+}
+
+.match_info {
+    width: 60%;
+    margin: auto;
+    margin-bottom: 30px;
+}
+
+.date_container {
+    text-align: center;
+    font-size: 25px;
+}
+
+.general_info {
+    font-size: 20px;
+    border-bottom: 1px solid black;
+    margin-bottom: 15px;
+}
+
+.tournament_stats_node {
+    display: flex;
+    justify-content: space-between;
+}
+
+.tournament_wins_node {
+    width: 60%;
+    margin: auto;
+}
+
+.overall_button {
+    background-color: #56042C;
+    /*margin-bottom: 100px;*/
+    position: absolute;
+    width: 80%;
+    height: 100px;
+    top: -100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+
+
+}
+
+.overall_button:hover {
+    background-color: #fff;
+    color: #56042C;
+}
+
+.overall_button > p {
+    height: 30%;
+}
+
+.overall_button_fifa {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.overall_button_qatar {
+    margin-top: -10px;
+    margin-bottom: 0px;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.overall_button_stats {
+    margin-top: 15px;
+    margin-bottom: 0px;
+    font-size: 15px;
+}
+
+.game_8 {
+    /*margin-top: -40px;*/
+}
+
+
+.tournament_stats_text_node {
+    margin-top: 10px;
+    font-size: 20px;
+    text-align: center;
+}
+
+.general_team_statistics_header {
+    text-align: center;
+    font-size: 25px;
+    margin-top: 80px;
+
+}
+.overall_text {
+    text-align: center;
+    font-size: 25px;
+    margin-top: 30px;
+}
+.text_and_radar_chart_container {
+
+    margin: auto;
+    margin-top: 20px;
+
+    display: flex;
+    justify-content: space-around;
+    /*background-color: #f1f;*/
+    width: 70%;
+    height: 400px;
+
+}
+
+.radar_chart_container {
+    width: 45%;
+    /*background-color: #ff1;*/
+    display: flex;
+    justify-content: center;
+}
+
+.text_radar_chart_container {
+    width: 45%;
+    /*background-color: #1ff;*/
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.text_radar_chart {
+    background-color: #fff;
+    font-size: 12px;
+    padding: 20px;
+}
+
+#radar_chart {
+    /*margin-left: auto;*/
 }

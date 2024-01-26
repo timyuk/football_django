@@ -14,29 +14,29 @@ def execute_query(query, variables):
     conn.close()
     return result
 
-df = pd.read_json('match_data.json')
-playoff_df = df.loc[48:].copy()
-print(playoff_df.columns)
-print(playoff_df.dtypes)
+df = pd.read_json('sankey_data3.json')
+print(df)
+df = df.rename(columns={'Team Strategy':'team_strategy'})
+print(df.columns)
+print(set(df.dtypes))
 dtypes_dict = {'int64':'INTEGER',
-          'float64':'FLOAT',
-          'object':'VARCHAR(255)',
+          'float64':'REAL',
+          'object':'TEXT',
           'datetime64[ns]':'datetime'}
 
-# query = 'CREATE TABLE match_data(matchid INTEGER'
-# for i, column in enumerate(playoff_df.columns):
-#     query+=f', {column} {dtypes_dict[str(playoff_df.dtypes[i])]}'
-# query += ');'
-# print(query)
-# execute_query(query, [])
-# matches = df.to_dict('records')
-print(df['home_formation'].unique())
-print(df['away_formation'].unique())
+query = 'CREATE TABLE sankey_data(teamid INTEGER'
+for i, column in enumerate(df.columns):
+    query+=f', {column} {dtypes_dict[str(df.dtypes[i])]}'
+query += ');'
+print(query)
+execute_query(query, [])
+teams = df.to_dict('records')
+# print(df['home_formation'].unique())
+# print(df['away_formation'].unique())
 
-# for match in matches:
-#     print(match)
-#     match['match_time'] = str(match['match_time'])
-#     query = f"""INSERT INTO match_data({', '.join(column for column in df.columns.values)})
-#                 VALUES ({', '.join('?' for i in range(len(df.columns.values)))});"""
-#     print(tuple(match.values()))
-#     execute_query(query, tuple(match.values()))
+for team in teams:
+    print(team)
+    query = f"""INSERT INTO sankey_data({', '.join(column for column in df.columns.values)})
+                VALUES ({', '.join('?' for i in range(len(df.columns.values)))});"""
+    print(tuple(team.values()))
+    execute_query(query, tuple(team.values()))

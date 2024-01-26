@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from main.models import Matches, MatchTeam, MatchData
+from main.models import Matches, MatchTeam, MatchData, TeamData, RadarData, TeamRanking, SankeyData
 import pandas as pd
 import json
 # Create your views here.
@@ -20,5 +20,9 @@ def index(request):
                         'all':json.dumps(list(Matches.objects.all().order_by('order').values()), default=str)}
     context['match_teams'] = json.dumps(list(MatchTeam.objects.all().values()), default=str)
     context['match_data'] = json.dumps(list(MatchData.objects.all().values()), default=str)
-    print(context['match_teams'])
+    context['team_data'] = json.dumps(list(TeamData.objects.all().values()), default=str)
+    context['radar_data'] = json.dumps(list(RadarData.objects.all().values()), default=str)
+    context['team_ranking'] = json.dumps(list(TeamRanking.objects.all().values()), default=str)
+    context['sankey_data'] = json.dumps(list(SankeyData.objects.all().values()), default=str)
+
     return render(request, 'main/index.html', context)

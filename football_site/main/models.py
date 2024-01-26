@@ -85,3 +85,145 @@ class MatchData(models.Model):
         managed = True
         db_table = 'match_data'
 
+
+class TeamData(models.Model):
+    teamid = models.AutoField(primary_key=True, blank=True, null=False)
+    team = models.TextField(blank=True, null=True)
+    avg_age = models.FloatField(blank=True, null=True)  # This field type is a guess.
+    possession = models.FloatField(blank=True, null=True)  # This field type is a guess.
+    games = models.IntegerField(blank=True, null=True)
+    gk_wins = models.IntegerField(blank=True, null=True)
+    gk_ties = models.IntegerField(blank=True, null=True)
+    gk_losses = models.IntegerField(blank=True, null=True)
+    shots = models.IntegerField(blank=True, null=True)
+    shots_on_target = models.IntegerField(blank=True, null=True)
+    goals_per_shot = models.FloatField(blank=True, null=True)  # This field type is a guess.
+    goals_per_shot_on_target = models.FloatField(blank=True, null=True)  # This field type is a guess.
+    average_shot_distance = models.FloatField(blank=True, null=True)  # This field type is a guess.
+    npxg_per_shot = models.FloatField(blank=True, null=True)  # This field type is a guess.
+    goals = models.IntegerField(blank=True, null=True)
+    xg = models.FloatField(blank=True, null=True)  # This field type is a guess.
+    goals_pens = models.IntegerField(blank=True, null=True)
+    npxg = models.FloatField(blank=True, null=True)  # This field type is a guess.
+    assists = models.IntegerField(blank=True, null=True)
+    xg_assist = models.FloatField(blank=True, null=True)  # This field type is a guess.
+    crosses = models.IntegerField(blank=True, null=True)
+    corner_kicks = models.IntegerField(blank=True, null=True)
+    sca = models.IntegerField(blank=True, null=True)
+    sca_dribbles = models.IntegerField(blank=True, null=True)
+    sca_shots = models.IntegerField(blank=True, null=True)
+    sca_fouled = models.IntegerField(blank=True, null=True)
+    sca_defense = models.IntegerField(blank=True, null=True)
+    gca = models.IntegerField(blank=True, null=True)
+    gca_dribbles = models.IntegerField(blank=True, null=True)
+    gca_shots = models.IntegerField(blank=True, null=True)
+    gca_fouled = models.IntegerField(blank=True, null=True)
+    gca_defense = models.IntegerField(blank=True, null=True)
+    tackles_att_3rd = models.IntegerField(blank=True, null=True)
+    touches_mid_3rd = models.IntegerField(blank=True, null=True)
+    touches_att_3rd = models.IntegerField(blank=True, null=True)
+    touches_att_pen_area = models.IntegerField(blank=True, null=True)
+    dribbles = models.IntegerField(blank=True, null=True)
+    dribbles_completed = models.IntegerField(blank=True, null=True)
+    gk_goals_against = models.IntegerField(blank=True, null=True)
+    gk_shots_on_target_against = models.IntegerField(blank=True, null=True)
+    gk_clean_sheets = models.IntegerField(blank=True, null=True)
+    gk_psxg_net = models.FloatField(blank=True, null=True)  # This field type is a guess.
+    gk_crosses = models.IntegerField(blank=True, null=True)
+    gk_crosses_stopped = models.IntegerField(blank=True, null=True)
+    gk_def_actions_outside_pen_area = models.IntegerField(blank=True, null=True)
+    gk_avg_distance_def_actions = models.FloatField(blank=True, null=True)  # This field type is a guess.
+    tackles_def_3rd = models.IntegerField(blank=True, null=True)
+    tackles_mid_3rd = models.IntegerField(blank=True, null=True)
+    dribble_tackles = models.IntegerField(blank=True, null=True)
+    dribbled_past = models.IntegerField(blank=True, null=True)
+    blocked_passes = models.IntegerField(blank=True, null=True)
+    blocked_shots = models.IntegerField(blank=True, null=True)
+    interceptions = models.IntegerField(blank=True, null=True)
+    clearances = models.IntegerField(blank=True, null=True)
+    touches_def_pen_area = models.IntegerField(blank=True, null=True)
+    touches_def_3rd = models.IntegerField(blank=True, null=True)
+    gk_passes_length_avg = models.FloatField(blank=True, null=True)  # This field type is a guess.
+    passes = models.IntegerField(blank=True, null=True)
+    passes_total_distance = models.IntegerField(blank=True, null=True)
+    passes_progressive_distance = models.IntegerField(blank=True, null=True)
+    passes_completed_short = models.IntegerField(blank=True, null=True)
+    passes_short = models.IntegerField(blank=True, null=True)
+    passes_completed_medium = models.IntegerField(blank=True, null=True)
+    passes_medium = models.IntegerField(blank=True, null=True)
+    passes_completed_long = models.IntegerField(blank=True, null=True)
+    passes_long = models.IntegerField(blank=True, null=True)
+    gk_passes_completed_launched = models.IntegerField(blank=True, null=True)
+    gk_passes_launched = models.IntegerField(blank=True, null=True)
+    pass_xa = models.FloatField(blank=True, null=True)  # This field type is a guess.
+    assisted_shots = models.IntegerField(blank=True, null=True)
+    passes_into_final_third = models.IntegerField(blank=True, null=True)
+    passes_into_penalty_area = models.IntegerField(blank=True, null=True)
+    crosses_into_penalty_area = models.IntegerField(blank=True, null=True)
+    progressive_passes = models.IntegerField(blank=True, null=True)
+    passes_offsides = models.IntegerField(blank=True, null=True)
+    passes_blocked = models.IntegerField(blank=True, null=True)
+    errors = models.IntegerField(blank=True, null=True)
+    miscontrols = models.IntegerField(blank=True, null=True)
+    dispossessed = models.IntegerField(blank=True, null=True)
+    passes_received = models.IntegerField(blank=True, null=True)
+    ball_recoveries = models.IntegerField(blank=True, null=True)
+    cards_yellow = models.IntegerField(blank=True, null=True)
+    cards_red = models.IntegerField(blank=True, null=True)
+    cards_yellow_red = models.IntegerField(blank=True, null=True)
+    fouls = models.IntegerField(blank=True, null=True)
+    fouled = models.IntegerField(blank=True, null=True)
+    touches = models.IntegerField(blank=True, null=True)
+    tackles = models.IntegerField(blank=True, null=True)
+    tackles_won = models.IntegerField(blank=True, null=True)
+    pens_won = models.IntegerField(blank=True, null=True)
+    pens_conceded = models.IntegerField(blank=True, null=True)
+    own_goals = models.IntegerField(blank=True, null=True)
+    aerials_won= models.IntegerField(blank=True, null=True)
+    aerials_lost = models.IntegerField(blank=True, null=True)
+    manager = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = 'team_data'
+
+
+class RadarData(models.Model):
+    teamid = models.IntegerField(blank=True, primary_key=True)
+    team = models.TextField(blank=True, null=True)
+    discipline_score = models.FloatField(blank=True, null=True)
+    passes_score = models.FloatField(blank=True, null=True)
+    possession_score = models.FloatField(blank=True, null=True)
+    defensive_score = models.FloatField(blank=True, null=True)
+    attacking_score = models.FloatField(blank=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = 'radar_data'
+
+class SankeyData(models.Model):
+    teamid = models.AutoField(primary_key=True, blank=True)
+    team = models.TextField(blank=True, null=True)
+    win = models.IntegerField(blank=True, null=True)
+    ties = models.IntegerField(blank=True, null=True)
+    loss = models.IntegerField(blank=True, null=True)
+    team_strategy = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = 'sankey_data'
+
+class TeamRanking(models.Model):
+    teamid = models.AutoField(primary_key=True, blank=True)
+    team = models.TextField(blank=True, null=True)
+    team_code = models.TextField(blank=True, null=True)
+    points_2018 = models.FloatField(blank=True, null=True)
+    points_2014 = models.FloatField(blank=True, null=True)
+    points_2022 = models.FloatField(blank=True, null=True)
+    goals = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = 'team_ranking'
+
+

@@ -2,149 +2,668 @@
 {% load static %}
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tournament Bracket</title>
-  <link rel="stylesheet" href="{% static 'main/styles.css' %}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournament Bracket</title>
+
+    <link rel="stylesheet" href="{% static 'main/styles.css' %}">
 </head>
 <body>
-    <div class="bracket">
-        <div class="round">
-            <div class="group">
+<div class="bracket">
 
-            </div>
-            <div class="group">
-
-            </div>
-            <div class="group">
-
-            </div>
-            <div class="group">
-
-            </div>
+    {% for round in games.rounds %}
+    <div class="round round_{{ forloop.counter }}">
+        {%if forloop.counter == 3 %}
+        <div class="game overall_button" id="overall_button">
+            <p class="overall_button_fifa">FIFA WORLD CUP</p>
+            <p class="overall_button_qatar">Qatar 2022</p>
+            <p class="overall_button_stats">Overall Statistics</p>
         </div>
-        {% for round in games.rounds %}
-        <div class="round round_{{ forloop.counter }}">
-            {%if forloop.counter == 3 %}
-                <div class="game not_visible">
-                    <div class="team">Final Winner</div>
-                    <div class="team">Final Loser</div>
+        <div class="game not_visible">
+
+        </div>
+        {%endif%}
+        {% for game in round %}
+        <div class="game game_{{game.order}}" id="game_{{game.order}}">
+            <div class="game_info">
+                <div class='phase'>
+                    {{game.phase}}
                 </div>
-            {%endif%}
-            {% for game in round %}
-                <div class="game game_{{game.order}}" id = "game_{{game.order}}">
-                    <div class="game_info">
-                        <div class = 'phase'>
-                            {{game.phase}}
-                        </div>
-<!--                        <div class="date">-->
-<!--                            {{game.date}}-->
-<!--                        </div>-->
-                    </div>
-                    <div class="team {{game.status_home}} team_home">
-                        <div class="flag" style="background-image: url('{{game.flag_home}}')"></div>
-                        <div class="country">{{game.country_home}}</div>
-                        <div class="score">{{game.score_home}}</div>
-                    </div>
-                    <div class="team {{game.status_away}}">
-                        <div class="flag" style="background-image: url('{{game.flag_away}}')"></div>
-                        <div class="country">{{game.country_away}}</div>
-                        <div class="score">{{game.score_away}}</div>
-                    </div>
-                </div>
-            {% endfor %}
+            </div>
+            <div class="team {{game.status_home}} team_home">
+                <div class="flag" style="background-image: url('{{game.flag_home}}')"></div>
+                <div class="country">{{game.country_home}}</div>
+                <div class="score">{{game.score_home}}</div>
+            </div>
+            <div class="team {{game.status_away}}">
+                <div class="flag" style="background-image: url('{{game.flag_away}}')"></div>
+                <div class="country">{{game.country_away}}</div>
+                <div class="score">{{game.score_away}}</div>
+            </div>
         </div>
         {% endfor %}
-        <div class="round">
-            <div class="group">
-
-            </div>
-            <div class="group">
-
-            </div>
-            <div class="group">
-
-            </div>
-            <div class="group">
-
-            </div>
-        </div>
     </div>
-    {% include 'main/includes/statistics.html' %}
+    {% endfor %}
+
+</div>
+<div class="statistics_container" id='statistics_container'>
+</div>
 
 </body>
+<script src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-treemap@next/dist/chartjs-chart-treemap.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-sankey@0.12.0/dist/chartjs-chart-sankey.js"></script>
 <script>
+    //Return window to top on update
+    window.onbeforeunload = function () {
+        window.scrollTo(0, 0);
+    }
 
-
-    let dimensions = []
+    //Load necessary data
     let matches = JSON.parse('{{ games.all|safe }}');
-    let match_teams_data = JSON.parse('{{ match_teams|safe }}');
     let match_data = JSON.parse('{{ match_data|safe }}');
+    let team_data = JSON.parse('{{ team_data|safe }}');
+    let radar_data = JSON.parse('{{ radar_data|safe }}');
+    let team_ranking = JSON.parse('{{ team_ranking|safe }}')
+    team_ranking.sort((a, b) => (a.team > b.team) ? 1 : ((b.team > a.team) ? -1 : 0))
+    let sankey_data = JSON.parse('{{ sankey_data|safe }}')
+    sankey_data.sort((a, b) => (a.team > b.team) ? 1 : ((b.team > a.team) ? -1 : 0))
 
+    //Declare necessary global variables
+    let dimensions = []
     let body = document.getElementsByTagName('body')[0]
-    let svg_node = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    const statistics_container = document.getElementById('statistics_container')
+    let scatter = undefined
+    let sankey = undefined
+    const overall_button = document.getElementById('overall_button')
 
-    svg_node.setAttribute('width','100%')
-    svg_node.setAttribute('height','100%')
-    body.insertBefore(svg_node, body.firstChild)
 
+    //Set click event listeners to every match
     for (let i = 0; i < matches.length; i++) {
-        console.log('game_' + matches[i].order)
         const current_node = document.getElementById('game_' + matches[i].order)
         var rect = current_node.getBoundingClientRect();
-        dimensions.push([(rect.right + rect.left)/2, (rect.top + rect.bottom)/2])
+        dimensions.push([(rect.right + rect.left) / 2, (rect.top + rect.bottom) / 2])
         current_node.addEventListener('click', function () {
             update_graphs(matches[i])
         })
     }
-    render_line(dimensions[0], dimensions[4])
-    render_line(dimensions[1], dimensions[4])
-    render_line(dimensions[2], dimensions[6])
-    render_line(dimensions[3], dimensions[6])
-    render_line(dimensions[4], dimensions[5])
-    render_line(dimensions[6], dimensions[5])
-    render_line(dimensions[5], dimensions[7])
-    render_line(dimensions[7], dimensions[10])
-    render_line(dimensions[10], dimensions[9])
-    render_line(dimensions[10], dimensions[11])
-    render_line(dimensions[9], dimensions[12])
-    render_line(dimensions[9], dimensions[13])
-    render_line(dimensions[11], dimensions[14])
-    render_line(dimensions[11], dimensions[15])
-    function update_graphs(data){
-        const match_teams = document.getElementById('match_teams')
-        match_teams.innerHTML = '';
+    //Set click event listener to overall butoon
+    overall_button.addEventListener('click', function () {
+        show_overall_stats()
+    })
 
-        let current_data = match_data[data.teamid+47]
+    //Generate bracket lines
+    let svg_node = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg_node.setAttribute('width', '100%')
+    svg_node.setAttribute('height', '100%')
+    body.insertBefore(svg_node, body.firstChild)
+    render_lines()
 
-        const match_team_statistics = document.getElementById('match_team_statistics')
-        match_team_statistics.innerHTML = '';
+    /**
+     * On click event generates or updates graphs under the bracket
+     * @param data - data based on which graphs should be generated
+     */
+    function update_graphs(data) {
+        let current_data = match_data[data.teamid + 47]
 
-        const match_teams_info = get_match_teams_info(current_data)
+        statistics_container.innerHTML = '';
+
+        const match_info = document.createElement('div')
+        match_info.classList.add('match_info')
+        const match_info_container = get_match_info(current_data)
+        match_info.appendChild(match_info_container)
+        const match_teams = document.createElement('div')
+        match_teams.classList.add('match_teams')
+
+        const match_teams_header = document.createElement('div')
+        match_teams_header.classList.add('match_teams_header')
+        match_teams_header.innerText = 'Match Performance'
+        match_teams.appendChild(match_teams_header)
+        const match_teams_info = get_match_teams_info(current_data, data.status_home, data.status_away)
         match_teams.appendChild(match_teams_info)
 
-        const bidir = get_bidir(current_data)
-        match_team_statistics.appendChild(bidir)
 
-        const comp_tables = get_comp_tables(current_data)
-        match_team_statistics.appendChild(comp_tables)
+        const match_team_statistics = get_match_team_statistics(current_data, data.status_home)
+        const general_team_statistics = get_general_team_statistics()
+
+        statistics_container.appendChild(match_info)
+        statistics_container.appendChild(match_teams)
+        statistics_container.appendChild(match_team_statistics)
+        statistics_container.appendChild(general_team_statistics)
+        get_radar_chart(get_current_radar_data(current_data.home_team), get_current_radar_data(current_data.away_team), data.status_home)
+        window.scrollTo({
+            top: 800,
+            left: 0,
+            behavior: "smooth",
+        });
 
     }
 
-    function render_line(first_block, second_block){
-        x1 = first_block[0]+ document.documentElement.scrollLeft
+    /**
+     * On click event generates graphs for overall play-off teams comparison
+     */
+    function show_overall_stats() {
+        statistics_container.innerHTML = '';
+        const overall_text = document.createElement('div')
+        overall_text.classList.add('overall_text')
+        overall_text.innerText = 'Play-off Teams Performance'
+        statistics_container.appendChild(overall_text)
+        const scatter_sankey_container = document.createElement('div')
+        scatter_sankey_container.classList.add('scatter_sankey_container')
+
+        const scatter_container = document.createElement('div')
+        scatter_container.classList.add('scatter_container')
+        scatter_container.id = 'scatter_container'
+        const scatter_canvas = document.createElement('canvas')
+        scatter_canvas.id = 'scatter_canvas'
+        scatter_container.appendChild(scatter_canvas)
+
+        const sankey_container = document.createElement('div')
+        sankey_container.classList.add('sankey_container')
+        sankey_container.id = 'sankey_container'
+        const sankey_canvas = document.createElement('canvas')
+        sankey_canvas.id = 'sankey_canvas'
+
+        sankey_container.appendChild(sankey_canvas)
+        scatter_sankey_container.appendChild(scatter_container)
+        scatter_sankey_container.appendChild(sankey_container)
+        statistics_container.appendChild(scatter_sankey_container)
+        // get_treemap_chart('shots')
+        scatter = get_scatter()
+        sankey = get_sankey()
+        window.scrollTo({
+            top: 800,
+            left: 0,
+            behavior: "smooth",
+        });
+    }
+
+    /**
+     * Draws all lines between matches in a bracket
+     */
+    function render_lines() {
+        render_line(dimensions[0], dimensions[4])
+        render_line(dimensions[1], dimensions[4])
+        render_line(dimensions[2], dimensions[6])
+        render_line(dimensions[3], dimensions[6])
+        render_line(dimensions[4], dimensions[5])
+        render_line(dimensions[6], dimensions[5])
+        render_line(dimensions[5], dimensions[7])
+        render_line(dimensions[7], dimensions[10])
+        render_line(dimensions[10], dimensions[9])
+        render_line(dimensions[10], dimensions[11])
+        render_line(dimensions[9], dimensions[12])
+        render_line(dimensions[9], dimensions[13])
+        render_line(dimensions[11], dimensions[14])
+        render_line(dimensions[11], dimensions[15])
+    }
+
+    /**
+     * Draw single line between two matches divs
+     * @param first_block - dimensions (x,y) of the first match div
+     * @param second_block - dimensions (x,y) of the second match div
+     */
+    function render_line(first_block, second_block) {
+        x1 = first_block[0] + document.documentElement.scrollLeft
         y1 = first_block[1] + document.documentElement.scrollTop
-        x2 = second_block[0]+ document.documentElement.scrollLeft
-        y2 = second_block[1]+ document.documentElement.scrollTop
-        let line_node = document.createElementNS('http://www.w3.org/2000/svg','line');
-        line_node.setAttribute('x1',x1)
-        line_node.setAttribute('y1',y1)
+        x2 = second_block[0] + document.documentElement.scrollLeft
+        y2 = second_block[1] + document.documentElement.scrollTop
+        let line_node = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line_node.setAttribute('x1', x1)
+        line_node.setAttribute('y1', y1)
         line_node.setAttribute('x2', x2)
         line_node.setAttribute('y2', y2)
         line_node.setAttribute('stroke', 'black')
         svg_node.appendChild(line_node)
     }
-    function get_match_teams_info(current_data){
+
+    /**
+     * Generates scatter plot for ranking points/goals for play-off teams comparison
+     * @param selected_team - optional parameter, if passed, then only one team is highlighted on the chart
+     * @returns {Chart} - scatter chart object, so it can be updated
+     */
+    function get_scatter(selected_team) {
+
+        const teams_data_scatter = []
+        const labels = []
+        const teamColors = ["#FF5733", "#FFD700", "#00FF00", "#FF1493", "#00CED1", "#FF4500", "#8A2BE2", "#32CD32", "#FF6347", "#1E90FF", "#FF69B4", "#00FF7F", "#FF8C00", "#8B008B", "#9ACD32", "#FF00FF"
+        ];
+        const scatter_colors = get_colors(selected_team)
+        for (let i = 0; i < team_ranking.length; i++) {
+            teams_data_scatter.push({x: team_ranking[i].goals, y: team_ranking[i].points_2022})
+            labels.push(team_ranking[i].team)
+
+        }
+
+
+        let chartStatus = Chart.getChart("scatter_canvas"); // <canvas> id
+        if (chartStatus != undefined) {
+            chartStatus.destroy();
+        }
+
+        const data_scatter = {
+            datasets: [{
+                label: 'Legendd',
+                labels: labels,
+                data: teams_data_scatter,
+                pointBackgroundColor: scatter_colors
+            }],
+        };
+        const options_scatter = {
+            maintainAspectRatio: false,
+            animation: false,
+            interaction: {
+                intersect: false,
+                mode: 'nearest',
+                axis: 'xy'
+            },
+            scales: {
+                x: {
+
+                    type: 'linear',
+                    position: 'bottom',
+                    title: {
+                        display: true,
+                        text: 'Goals in FIFA World Cup 2022'
+                    }
+                },
+                y: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Rating Points in 2022'
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function (ctx) {
+                            const current_country = ctx.dataset.labels[ctx.dataIndex]
+                            const colors = {
+                                win: 'green',
+                                tie: '#CCCCCC',
+                                loss: 'red',
+                                'Good attack': '#87C38F',
+                                'Good defense': '#87C38F',
+                                'Bad attack': '#EA868C',
+                                'Bad defense': '#EA868C'
+                            };
+                            const sankey_colors = get_colors(current_country)
+                            for (let i = 0; i < sankey_data.length; i++) {
+                                colors[sankey_data[i].team] = sankey_colors[i]
+                            }
+
+
+                            const getColor = (key, the_colors) => {
+                                return the_colors[key]
+                            }
+
+
+                            sankey.data.datasets[0].colorFrom = (c) => getColor(c.dataset.data[c.dataIndex].from, colors)
+                            sankey.data.datasets[0].colorTo = (c) => getColor(c.dataset.data[c.dataIndex].to, colors)
+
+                            sankey.update()
+                            let label = current_country;
+                            label += " (" + ctx.parsed.x + ", " + ctx.parsed.y + ")";
+                            return label;
+                        },
+
+                    }
+                },
+                legend: {
+                    display: false,
+                }
+            }
+        };
+        const plugins_scatter = [{
+            id: 'myEventCatcher',
+            beforeEvent(chart, args, pluginOptions) {
+
+                const event = args.event;
+                if (event.type === 'mouseout') {
+                    const getColor = (key, the_colors) =>
+                        the_colors[key];
+                    const colors = {
+                        win: 'green',
+                        tie: '#CCCCCC',
+                        loss: 'red',
+                        'Good attack': '#87C38F',
+                        'Good defense': '#87C38F',
+                        'Bad attack': '#EA868C',
+                        'Bad defense': '#EA868C'
+                    };
+                    const sankey_colors = get_colors()
+                    for (let i = 0; i < sankey_data.length; i++) {
+
+
+                        colors[sankey_data[i].team] = sankey_colors[i]
+                    }
+                    sankey.data.datasets[0].colorFrom = (c) => getColor(c.dataset.data[c.dataIndex].from, colors)
+                    sankey.data.datasets[0].colorTo = (c) => getColor(c.dataset.data[c.dataIndex].to, colors)
+
+                    sankey.update()
+                }
+
+            }
+        }
+        ]
+        const config_scatter = {
+            type: 'scatter',
+            data: data_scatter,
+            options: options_scatter,
+            plugins: plugins_scatter
+        };
+
+        const scatter = new Chart('scatter_canvas', config_scatter)
+        return scatter
+    }
+
+    /**
+     * Generates sankey diagram for play-off teams comparison
+     * @param selected_team - optional parameter, if passed, then only one team is highlighted on the chart
+     * @returns {Chart} - sankey chart object, so it can be updated
+     */
+    function get_sankey(selected_team) {
+        const teams_data_sankey = []
+        const labels = []
+        const colors = {
+            win: 'green',
+            tie: '#CCCCCC',
+            loss: 'red',
+            'Good attack': '#87C38F',
+            'Good defense': '#87C38F',
+            'Bad attack': '#EA868C',
+            'Bad defense': '#EA868C'
+        };
+        const sankey_colors = get_colors(selected_team)
+        for (let i = 0; i < sankey_data.length; i++) {
+            let wins = parseInt(sankey_data[i].win)
+            let ties = parseInt(sankey_data[i].ties)
+            let losses = parseInt(sankey_data[i].loss)
+            let total_games = wins + ties + losses
+            let [attack, defense] = sankey_data[i].team_strategy.split('; ')
+            colors[sankey_data[i].team] = sankey_colors[i]
+            teams_data_sankey.push({from: attack, to: 'win', flow: wins / 2})
+            teams_data_sankey.push({from: attack, to: 'tie', flow: ties / 2})
+            teams_data_sankey.push({from: attack, to: 'loss', flow: losses / 2})
+
+            teams_data_sankey.push({from: defense, to: 'win', flow: wins / 2})
+            teams_data_sankey.push({from: defense, to: 'tie', flow: ties / 2})
+            teams_data_sankey.push({from: defense, to: 'loss', flow: losses / 2})
+            teams_data_sankey.push({from: sankey_data[i].team, to: attack, flow: total_games / 2})
+            teams_data_sankey.push({from: sankey_data[i].team, to: defense, flow: total_games / 2})
+
+
+            labels.push(team_ranking[i].team)
+        }
+        const priority = {'Good attack': 0, 'Good defense': 1, 'Bad attack': 2, 'Bad defense': 3}
+        const priority_team_ranking = [...team_ranking]
+        priority_team_ranking.sort((a, b) => b.points_2022 - a.points_2022);
+
+        for (let i = 0; i < priority_team_ranking.length; i++) {
+            priority[priority_team_ranking[i].team] = i
+        }
+        const getColor = (key, the_colors) =>
+            the_colors[key];
+        const data_sankey = {
+            datasets: [
+                {
+                    data: teams_data_sankey,
+                    colorFrom: (c) => getColor(c.dataset.data[c.dataIndex].from, colors),
+                    colorTo: (c) => getColor(c.dataset.data[c.dataIndex].to, colors),
+                    colorMode: 'from',
+                    priority: priority,
+                    size: 'max',
+                    column: {
+                        'Good attack': 1,
+                        'Good defense': 1,
+                        'Bad attack': 1,
+                        'Bad defense': 1
+                    },
+                },
+
+
+            ]
+        }
+        const options_sankey = {
+            maintainAspectRatio: false,
+            animation: false,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function (ctx) {
+                            // console.log(ctx.raw)
+                            scatter.data.datasets[0].pointBackgroundColor = get_colors(ctx.raw.from)
+                            scatter.update()
+                            // get_scatter(ctx.raw.from)
+                            let label = ctx.raw.from + ' -> ' + ctx.raw.to + ': ' + ctx.raw.flow
+                            // label += " (" + ctx.parsed.x + ", " + ctx.parsed.y + ")";
+                            return label;
+                        },
+                    }
+                }
+            }
+        }
+        const plugins_sankey = [{
+            id: 'myEventCatcher',
+            beforeEvent(chart, args, pluginOptions) {
+                const event = args.event;
+                if (event.type === 'mouseout') {
+                    scatter.data.datasets[0].pointBackgroundColor = get_colors()
+                    scatter.update()
+                }
+            }
+        }]
+        const config_sankey = {
+            type: 'sankey',
+            data: data_sankey,
+            options: options_sankey,
+            plugins: plugins_sankey
+
+        }
+        const sankey = new Chart('sankey_canvas', config_sankey);
+        return sankey
+    }
+
+    /**
+     * Generates a list of colors for all teams in scatter and sankey charts
+     * @param selected_team - optional parameter, if passed, then only one team has color, other colors are gray
+     * @returns {string[]|*[]} - array of strings representing hex colors
+     */
+    function get_colors(selected_team) {
+        const teamColors = ["#FF5733", "#FFD700", "#00FF00", "#FF1493", "#00CED1", "#FF4500", "#8A2BE2", "#32CD32", "#FF6347", "#1E90FF", "#FF69B4", "#00FF7F", "#FF8C00", "#8B008B", "#9ACD32", "#FF00FF"];
+        const return_colors = []
+        if (selected_team == undefined) {
+            return teamColors
+        } else {
+            for (let i = 0; i < team_ranking.length; i++) {
+                if (selected_team == team_ranking[i].team) {
+                    return_colors.push(teamColors[i])
+                } else {
+                    return_colors.push('#EEEEEE')
+                }
+            }
+            return return_colors
+        }
+    }
+
+    /**
+     * Generates full HTML code for Tournament Performance section
+     * @returns {HTMLDivElement} - generated HTML div
+     */
+    function get_general_team_statistics() {
+        const general_team_statistics = document.createElement('div')
+        general_team_statistics.classList.add('statistics')
+        general_team_statistics.innerHTML = '';
+
+        const general_team_statistics_header = document.createElement('div')
+        general_team_statistics_header.classList.add('general_team_statistics_header')
+        general_team_statistics_header.innerText = 'Tournament Performance'
+
+        general_team_statistics.appendChild(general_team_statistics_header)
+
+        const text_and_radar_chart_container = document.createElement('div')
+        text_and_radar_chart_container.classList.add('text_and_radar_chart_container')
+
+        const radar_chart_container = document.createElement('div')
+        radar_chart_container.classList.add('radar_chart_container')
+
+        const radar_chart = document.createElement('canvas')
+        radar_chart.id = 'radar_chart'
+
+        radar_chart_container.appendChild(radar_chart)
+
+        const text_radar_chart_container = document.createElement('div')
+        text_radar_chart_container.classList.add('text_radar_chart_container')
+
+        const text_radar_chart = document.createElement('div')
+        text_radar_chart.classList.add('text_radar_chart')
+        text_radar_chart.innerText = 'The graphic you see on the left represents a simple comparison of two teams via 5 most impactful discipline on the field. After thorough data examination we took into account both positively and negatively affecting features on each axis. Here is a brief overview of each:\n' +
+            '- Defense: blocks, saved penalties, own goals, conceded goals, etc.\n' +
+            '- Attack: goals, dispossessions, completed dribbles, etc.\n' +
+            '- Passes: completed passes, passes blocked by an opponent, passes creating a shot, etc.\n' +
+            '- Possession: avg ball possession per game, miscontrols, interceptions and etc.\n' +
+            '- Discipline: fouls, red/yellow cards, penalties conceded and etc.\n' +
+            'There are many more metrics taken into consideration for each axis; but this visualizations is not about that, it is for you to quickly and easily jump into a tournament and compare rivals and not worrying  about drowning in numbers and metrics.'
+
+        text_radar_chart_container.appendChild(text_radar_chart)
+
+        text_and_radar_chart_container.appendChild(radar_chart_container)
+        text_and_radar_chart_container.appendChild(text_radar_chart_container)
+
+        general_team_statistics.appendChild(text_and_radar_chart_container)
+        return general_team_statistics
+    }
+
+    /**
+     * Generates radar chart comparing Tournament Performance for the two teams in a given match
+     * @param data_home - home country data for a radar chart
+     * @param data_away - away country data for a radar chart
+     * @param status_home - determines which colors to use for teams on a radar chart
+     */
+    function get_radar_chart(data_home, data_away, status_home) {
+        const home_label = data_home.team
+        const away_label = data_away.team
+        const home_data = Object.values(data_home).slice(2)
+        const away_data = Object.values(data_away).slice(2)
+        let color_home = '#EA868C'
+        let color_away = '#87C38F'
+
+        if (status_home === 'winner') {
+            color_home = '#87C38F'
+            color_away = '#EA868C'
+        }
+        const data = {
+            labels: [
+                'Discipline',
+                'Passes',
+                'Possession',
+                'Defense',
+                'Attack',
+            ],
+            datasets: [{
+                label: home_label,
+                data: home_data,
+                fill: true,
+                backgroundColor: color_home + '33',
+                borderColor: color_home,
+                pointBackgroundColor: color_home,
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: color_home
+            }, {
+                label: away_label,
+                data: away_data,
+                fill: true,
+                backgroundColor: color_away + '33',
+                borderColor: color_away,
+                pointBackgroundColor: color_away,
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: color_away
+            }]
+        };
+
+        const config = {
+            type: 'radar',
+            data: data,
+            options: {
+                interaction: {
+                    intersect: false,
+                    mode: 'nearest',
+                    axis: 'xy'
+                },
+                elements: {
+                    line: {
+                        borderWidth: 3
+                    }
+                },
+                scales: {
+                    r: {
+                        angleLines: {
+                            display: false
+                        },
+                        suggestedMin: 0,
+                        suggestedMax: 1
+                    }
+                }
+            },
+
+        };
+        new Chart('radar_chart', config);
+    }
+
+    /**
+     * Gets data from radar_data for a given team only
+     * @param team - name of the given team
+     * @returns {*} - object with data for the given team
+     */
+    function get_current_radar_data(team) {
+        for (let i = 0; i < radar_data.length; i++) {
+            if (radar_data[i]['team'] === team) {
+                return radar_data[i]
+            }
+        }
+    }
+
+    /**
+     * Generates full HTML code for match info (date, referee, venue)
+     * @param current_data - data for the current match
+     * @returns {HTMLDivElement} - generated div
+     */
+    function get_match_info(current_data) {
+        const match_info_container = document.createElement('div')
+        const date_container = document.createElement('div')
+        const raw_match_time = current_data.match_time
+        const [date, time] = raw_match_time.slice(0, -6).split(" ");
+        const match_time = new Date(`${date}T${time}.000Z`)
+        console.log(match_time)
+        date_container.innerText = match_time.toUTCString().split('+')[0].slice(0, -4)
+        date_container.classList.add('date_container')
+        const referee_venue_container = document.createElement('div')
+        referee_venue_container.classList.add('referee_venue_container')
+        const referee_container = document.createElement('div')
+        referee_container.classList.add('referee_container')
+        referee_container.innerHTML = '<u>Referee:</u> ' + current_data.referee
+        const venue_container = document.createElement('div')
+        venue_container.classList.add('venue_container')
+        venue_container.innerHTML = '<u>Venue:</u> ' + current_data.venue
+        referee_venue_container.appendChild(referee_container)
+        referee_venue_container.appendChild(venue_container)
+        match_info_container.appendChild(date_container)
+        match_info_container.appendChild(referee_venue_container)
+        return match_info_container
+    }
+
+    /**
+     * Generated HTML code for general team info and field with formation
+     * @param current_data - data for the current match
+     * @param home_status - winner or loser
+     * @param away_status - winner or loser
+     * @returns {HTMLDivElement} - generated div
+     */
+    function get_match_teams_info(current_data, home_status, away_status) {
         const match_teams_info = document.createElement('div')
         match_teams_info.classList.add('match_teams_info')
 
@@ -152,59 +671,148 @@
         home_team_info.classList.add('home_team_info')
 
         const home_team_info_name = document.createElement('div')
-        home_team_info_name.classList.add('home_team_info_name')
+        home_team_info_name.classList.add('away_team_info_name', home_status)
+
         home_team_info_name.innerText = current_data.home_team
         home_team_info.appendChild(home_team_info_name)
 
-        const home_team_info_data = document.createElement('div')
+        const home_team_info_data = get_general_data(current_data.home_team)
         home_team_info_data.classList.add('home_team_info_data')
-        home_team_info_data.innerText = 'data'
+        console.log(home_team_info_data)
+
         home_team_info.appendChild(home_team_info_data)
         match_teams_info.appendChild(home_team_info)
+        const field_bidir = document.createElement('div')
+        field_bidir.classList.add('field_bidir')
 
         const field = document.createElement('div')
         field.classList.add('field')
 
-
-        const field_home = get_field_half('1-' + current_data.home_formation)
+        console.log(home_status)
+        const field_home = get_field_half('1-' + current_data.home_formation, home_status)
         field_home.classList.add('field_home')
-        const field_away = get_field_half('1-' + current_data.away_formation)
+        const field_away = get_field_half('1-' + current_data.away_formation, away_status)
         field_away.classList.add('field_away')
         field.appendChild(field_home)
         field.appendChild(field_away)
-        match_teams_info.appendChild(field)
+        field_bidir.appendChild(field)
+        // const bidir = get_bidir(current_data)
+        // field_bidir.appendChild(bidir)
+        match_teams_info.appendChild(field_bidir)
 
         const away_team_info = document.createElement('div')
         away_team_info.classList.add('away_team_info')
 
         const away_team_info_name = document.createElement('div')
-        away_team_info_name.classList.add('away_team_info_name')
+        away_team_info_name.classList.add('away_team_info_name', away_status)
         away_team_info_name.innerText = current_data.away_team
         away_team_info.appendChild(away_team_info_name)
 
-        const away_team_info_data = document.createElement('div')
+        const away_team_info_data = get_general_data(current_data.away_team)
         away_team_info_data.classList.add('away_team_info_data')
-        away_team_info_data.innerText = 'data'
         away_team_info.appendChild(away_team_info_data)
         match_teams_info.appendChild(away_team_info)
         return match_teams_info
 
+    }
 
+    /**
+     * Generates div with general data for a given team
+     * @param team - name of the given team
+     * @returns {HTMLDivElement} - generated div
+     */
+    function get_general_data(team) {
+        const general_data_node = document.createElement('div')
+        const general_info = document.createElement('div')
+        general_info.classList.add('general_info')
+        general_info.innerText = 'General info:'
+        const manager_node = document.createElement('div')
+        manager_node.classList.add('manager_node')
+        manager_node.innerText = 'Manager: ' + get_current_team_data(team).manager
 
+        const avg_age_node = document.createElement('div')
+        avg_age_node.classList.add('avg_age_node')
+        avg_age_node.innerText = 'Average age: ' + get_current_team_data(team).avg_age
+
+        const total_games_node = document.createElement('div')
+        total_games_node.classList.add('total_games_node')
+        total_games_node.innerText = 'Total games: ' + get_current_team_data(team).games
+
+        // const tournament_possession_node = document.createElement('div')
+        // tournament_possession_node.classList.add('tournament_possession_node')
+        // tournament_possession_node.innerText = 'Tournament possession: ' + get_current_team_data(team).possession + '%'
+
+        // const tournament_stats_text_node = document.createElement('div')
+        // tournament_stats_text_node.classList.add('tournament_stats_text_node')
+        // tournament_stats_text_node.innerText = 'Tournament outcomes w/o penalty shoot-out:'
+
+        // const tournament_stats_node = document.createElement('div')
+        // tournament_stats_node.classList.add('tournament_stats_node')
+        //
+        // const tournament_wins_node = document.createElement('div')
+        // tournament_wins_node.classList.add('tournament_wins_node')
+        //
+        // const tournament_pens_node = document.createElement('div')
+        // tournament_pens_node.classList.add('tournament_pens_node')
+        //
+        //
+        // const wins_pie_chart_canvas = document.createElement('canvas')
+        // wins_pie_chart_canvas.id = 'wins_chart_' + team
+        //
+        // const pens_pie_chart_canvas = document.createElement('canvas')
+        // pens_pie_chart_canvas.id = 'pens_chart_' + team
+        // tournament_wins_node.appendChild(wins_pie_chart_canvas)
+        // tournament_pens_node.appendChild(pens_pie_chart_canvas)
+        // tournament_stats_node.appendChild(tournament_wins_node)
+        // tournament_stats_node.appendChild(tournament_pens_node)
+        general_data_node.appendChild(general_info)
+        general_data_node.appendChild(manager_node)
+        general_data_node.appendChild(avg_age_node)
+        general_data_node.appendChild(total_games_node)
+        // general_data_node.appendChild(tournament_possession_node)
+        // general_data_node.appendChild(tournament_stats_text_node)
+        // general_data_node.appendChild(tournament_stats_node)
+        return general_data_node
 
     }
-    function get_field_half(formation){
-        console.log(formation)
+
+    /**
+     * Gets data from team_data object for a given team only
+     * @param team - name of the given team
+     * @returns {*} - given team data
+     */
+    function get_current_team_data(team) {
+        for (let i = 0; i < team_data.length; i++) {
+            if (team_data[i]['team'] === team) {
+                return team_data[i]
+            }
+        }
+    }
+
+    /**
+     * Generates HTML code for field half with given team formation
+     * @param formation - given team formation
+     * @param status - winner team or loser team
+     * @returns {HTMLDivElement} - generated div
+     */
+    function get_field_half(formation, status) {
         const field_home = document.createElement('div')
         formation = formation.split('-')
 
         let i = 0;
-        while (i < formation.length){
+        while (i < formation.length) {
             const field_line = document.createElement('div')
             field_line.classList.add('field_line')
-            for (let j = 0; j<formation[i]; j++){
+            for (let j = 0; j < formation[i]; j++) {
                 const player = document.createElement('player')
                 player.classList.add('player')
+
+                if (status == 'winner') {
+                    player.style.backgroundColor = '#87C38F'
+                } else {
+                    player.style.backgroundColor = '#EA868C'
+                }
+
                 field_line.appendChild(player)
             }
             field_home.appendChild(field_line)
@@ -213,7 +821,31 @@
         return field_home
     }
 
-    function get_comp_tables(current_data){
+    /**
+     * Generates HTML code for section with bidirectional bar chart and comparison tables for a given match
+     * @param current_data - data for a given match
+     * @param status_home - winner or loser
+     * @returns {HTMLDivElement} - generated div
+     */
+    function get_match_team_statistics(current_data, status_home) {
+        const match_team_statistics = document.createElement('div')
+        match_team_statistics.classList.add('statistics')
+        match_team_statistics.innerHTML = '';
+
+        const bidir = get_bidir(current_data, status_home)
+        match_team_statistics.appendChild(bidir)
+
+        const comp_tables = get_comp_tables(current_data)
+        match_team_statistics.appendChild(comp_tables)
+        return match_team_statistics
+    }
+
+    /**
+     * Generated HTML code for comparison tables for a given match
+     * @param current_data - data for a given match
+     * @returns {HTMLDivElement} - generated div
+     */
+    function get_comp_tables(current_data) {
         const comp_tables = document.createElement('div')
         comp_tables.classList.add('comp_tables')
         const first_table = get_comp_table(['fouls', 'corners', 'crosses'], current_data)
@@ -229,7 +861,14 @@
         comp_tables.appendChild(third_table)
         return comp_tables
     }
-    function get_comp_table(stat_names, current_data){
+
+    /**
+     * Generated HTML code for single comparison table
+     * @param stat_names - statistic names for a table
+     * @param current_data - data to generate a single table
+     * @returns {HTMLTableElement} - generated HTML table element
+     */
+    function get_comp_table(stat_names, current_data) {
         const comp_table = document.createElement('table')
         comp_table.classList.add('comp_table')
 
@@ -249,19 +888,45 @@
         tr_title.appendChild(th_away)
         comp_table.appendChild(tr_title)
 
-        let i =0;
-        while (i < stat_names.length){
+        let i = 0;
+        while (i < stat_names.length) {
             const stat_name = stat_names[i]
             const tr_row = document.createElement('tr')
+            const home_stat_value = current_data['home_' + stat_name]
+            const away_stat_value = current_data['away_' + stat_name]
+
             const td_home = document.createElement('td')
             td_home.classList.add('comp_table_stat_home')
-            td_home.innerText = current_data['home_' + stat_name]
+
+            const td_home_value = document.createElement('div')
+            td_home_value.classList.add('td_home_value')
+            td_home_value.innerText = home_stat_value
+
+            td_home.appendChild(td_home_value)
+
             const td_stat_name = document.createElement('td')
             td_stat_name.classList.add('comp_table_stat_name')
             td_stat_name.innerText = stat_name.replace('_', ' ')
             const td_away = document.createElement('td')
             td_away.classList.add('comp_table_stat_away')
-            td_away.innerText = current_data['away_' + stat_name]
+
+            const td_away_value = document.createElement('div')
+            td_away_value.classList.add('td_away_value')
+            td_away_value.innerText = away_stat_value
+
+            td_away.appendChild(td_away_value)
+
+            const alpha = Math.round((Math.abs(away_stat_value - home_stat_value) / Math.max(home_stat_value, away_stat_value)) * 150 + 105)
+            if (home_stat_value > away_stat_value) {
+                td_home_value.classList.add('larger_value')
+                td_home_value.style.backgroundColor = '#0000ff' + alpha.toString(16).toUpperCase()
+                td_home_value.style.color = '#ffffff'
+            } else if (home_stat_value < away_stat_value) {
+                td_away_value.classList.add('larger_value')
+                td_away_value.style.backgroundColor = '#0000ff' + alpha.toString(16).toUpperCase()
+                td_away_value.style.color = '#ffffff'
+
+            }
             tr_row.appendChild(td_home)
             tr_row.appendChild(td_stat_name)
             tr_row.appendChild(td_away)
@@ -273,7 +938,100 @@
 
 
     }
-    function get_bidir_line(left_width, left_inner_width, right_width, right_inner_width, left_text, right_text){
+
+    /**
+     * Generated HTML code for bidirectional bar chart for given match data
+     * @param current_data - given match data
+     * @param status_home - winner or loser
+     * @returns {HTMLDivElement} - generated div
+     */
+    function get_bidir(current_data, status_home) {
+        const bidir = document.createElement("div")
+        bidir.classList.add('bidir')
+
+
+        const possession_title = get_bidir_title('Possession')
+        const possession_line = get_perc_line(current_data.home_possession, current_data.away_possession, status_home)
+        bidir.appendChild(possession_title)
+        bidir.appendChild(possession_line)
+
+        const passes_title = get_bidir_title('Successful Passes')
+        const passes_line = get_number_line(current_data.home_attempted_pases, current_data.away_attempted_pases, current_data.home_completed_passes, current_data.away_completed_passes, status_home)
+        bidir.appendChild(passes_title)
+        bidir.appendChild(passes_line)
+
+        const sot_title = get_bidir_title('Shots On Target')
+        const sot_line = get_number_line(current_data.home_total_shots, current_data.away_total_shots, current_data.home_sot, current_data.away_sot, status_home)
+        bidir.appendChild(sot_title)
+        bidir.appendChild(sot_line)
+
+        const saves_title = get_bidir_title('Saves')
+        const saves_line = get_number_line(current_data.away_sot, current_data.home_sot, current_data.home_saves, current_data.away_saves, status_home)
+        bidir.appendChild(saves_title)
+        bidir.appendChild(saves_line)
+
+        return bidir
+    }
+
+    /**
+     * Generates HTML code for bidirectional bar chart title
+     * @param title - title of a chart
+     * @returns {HTMLDivElement} - generated div
+     */
+    function get_bidir_title(title) {
+        const title_node = document.createElement("div")
+        title_node.innerText = title
+        title_node.classList.add('bidir_title')
+        return title_node
+    }
+
+    /**
+     * Generates HTML code for a line of a bidirectional bar chart from numbers
+     * @param home_total - total for home team
+     * @param away_total - total for away team
+     * @param home_succ - successful for home team
+     * @param away_succ - successful for away team
+     * @param status_home - winner or loser
+     * @returns {HTMLDivElement} - generated div
+     */
+    function get_number_line(home_total, away_total, home_succ, away_succ, status_home) {
+
+        max_value = Math.max(home_total, away_total)
+        let proc_all_left = Math.round(100 * (home_total / max_value))
+        let proc_all_right = Math.round(100 * (away_total / max_value))
+        let proc_from_left = Math.round(100 * (home_succ / home_total))
+        let proc_from_right = Math.round(100 * (away_succ / away_total))
+
+        var left_text = home_succ + '/' + home_total + ' - ' + proc_from_left + '%'
+        var right_text = away_succ + '/' + away_total + ' - ' + proc_from_right + '%'
+        return get_bidir_line(proc_all_left, proc_from_left, proc_all_right, proc_from_right, left_text, right_text, status_home)
+    }
+
+    /**
+     * Generates HTML code for a line of a bidirectional bar chart from percentages
+     * @param home_total - percentage for home team
+     * @param away_total - percentage for away team
+     * @param status_home - winner or loser
+     * @returns {HTMLDivElement} - generated div
+     */
+    function get_perc_line(home_total, away_total, status_home) {
+        var left_text = home_total + '%'
+        var right_text = away_total + '%'
+        return get_bidir_line(100, home_total, 100, away_total, left_text, right_text, status_home)
+    }
+
+    /**
+     * Generates HTML code for a line of a bidirectional bar chart
+     * @param left_width - width for left (home team) total bar
+     * @param left_inner_width - width for left (home team) successful bar
+     * @param right_width - width for right (away team) total bar
+     * @param right_inner_width - width for right (away team) successful bar
+     * @param left_text - text for left (home team) bar
+     * @param right_text - text for right (away team) bar
+     * @param status_home - winner or loser
+     * @returns {HTMLDivElement} - generated div
+     */
+    function get_bidir_line(left_width, left_inner_width, right_width, right_inner_width, left_text, right_text, status_home) {
         console.log(left_text)
         const bidir_line = document.createElement("div")
         bidir_line.classList.add('bidir_line')
@@ -310,6 +1068,13 @@
         bidir_title_right.classList.add('bidir_title_right')
         bidir_title_right.innerHTML = right_text
 
+        console.log(status_home)
+        bidir_inner_left.style.backgroundColor = '#EA868C'
+        bidir_inner_right.style.backgroundColor = '#87C38F'
+        if (status_home === 'winner') {
+            bidir_inner_left.style.backgroundColor = '#87C38F'
+            bidir_inner_right.style.backgroundColor = '#EA868C'
+        }
 
         bidir_left.appendChild(bidir_inner_left)
         bidir_right.appendChild(bidir_inner_right)
@@ -322,81 +1087,5 @@
         return bidir_line
     }
 
-    function get_bidir(current_data){
-        const bidir = document.createElement("div")
-        bidir.classList.add('bidir')
-
-
-
-        const possession_title = get_bidir_title('Possession')
-        const possession_line = get_perc_line(current_data.home_possession, current_data.away_possession)
-        bidir.appendChild(possession_title)
-        bidir.appendChild(possession_line)
-
-        const passes_title = get_bidir_title('Successful Passes')
-        const passes_line = get_number_line(current_data.home_attempted_pases, current_data.away_attempted_pases, current_data.home_completed_passes, current_data.away_completed_passes)
-        bidir.appendChild(passes_title)
-        bidir.appendChild(passes_line)
-
-        const sot_title = get_bidir_title('Shots On Target')
-        const sot_line = get_number_line(current_data.home_total_shots, current_data.away_total_shots, current_data.home_sot, current_data.away_sot)
-        bidir.appendChild(sot_title)
-        bidir.appendChild(sot_line)
-
-        const scores = get_scores(current_data.score)
-        const saves_title = get_bidir_title('Saves')
-        const saves_line = get_number_line(current_data.away_sot, current_data.home_sot,current_data.home_saves, current_data.away_saves)
-        bidir.appendChild(saves_title)
-        bidir.appendChild(saves_line)
-
-        return bidir
-    }
-
-    function get_number_line(home_total, away_total, home_succ, away_succ ){
-
-        max_value = Math.max(home_total, away_total)
-        let proc_all_left = Math.round(100*(home_total/max_value))
-        let proc_all_right =  Math.round(100*(away_total/max_value))
-        let proc_from_left = Math.round(100*(home_succ/home_total))
-        let proc_from_right = Math.round(100*(away_succ/away_total))
-
-        var left_text =  home_succ + '/' + home_total + ' - ' + proc_from_left+'%'
-        var right_text = away_succ + '/' + away_total + ' - ' +proc_from_right + '%'
-        return get_bidir_line(proc_all_left, proc_from_left, proc_all_right, proc_from_right, left_text, right_text)
-    }
-    function get_perc_line(home_total, away_total ){
-        var left_text = home_total +'%'
-        var right_text = away_total + '%'
-        return get_bidir_line(100, home_total, 100, away_total, left_text, right_text)
-    }
-    function get_bidir_title(title){
-        const title_node = document.createElement("div")
-        title_node.innerText = title
-        title_node.classList.add('bidir_title')
-        return title_node
-    }
-    function get_scores(score){
-
-        if (score.indexOf('(')+1) {
-            let divis = score.indexOf('–')
-            let full_score_home = score.slice(0,divis)
-            let full_score_away = score.slice(divis+1)
-            let divis_home = full_score_home.indexOf(')')
-            var score_home = full_score_home.slice(divis_home+2)
-            var pen_home = full_score_home.slice(1, divis_home)
-            let divis_away = full_score_away.indexOf('(')
-            var score_away = full_score_away.slice(0,divis_away-1)
-            var pen_away = full_score_away.slice(divis_away+1, -1)
-
-        } else {
-            let divis = score.indexOf('–')
-            var score_home = score.slice(0,divis)
-            var score_away = score.slice(divis+1)
-            var pen_home = null
-            var pen_away = null
-
-        }
-        return [score_home, score_away, pen_home, pen_away]
-    }
 </script>
 </html>
