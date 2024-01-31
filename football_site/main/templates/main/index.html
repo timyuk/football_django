@@ -146,7 +146,7 @@
         statistics_container.innerHTML = '';
         const overall_text = document.createElement('div')
         overall_text.classList.add('overall_text')
-        overall_text.innerText = 'Play-off Teams Performance'
+        overall_text.innerText = 'Exploration of rating and tactic for teams in play-off'
         statistics_container.appendChild(overall_text)
         const scatter_sankey_container = document.createElement('div')
         scatter_sankey_container.classList.add('scatter_sankey_container')
@@ -226,8 +226,6 @@
 
         const teams_data_scatter = []
         const labels = []
-        const teamColors = ["#FF5733", "#FFD700", "#00FF00", "#FF1493", "#00CED1", "#FF4500", "#8A2BE2", "#32CD32", "#FF6347", "#1E90FF", "#FF69B4", "#00FF7F", "#FF8C00", "#8B008B", "#9ACD32", "#FF00FF"
-        ];
         const scatter_colors = get_colors(selected_team)
         for (let i = 0; i < team_ranking.length; i++) {
             teams_data_scatter.push({x: team_ranking[i].goals, y: team_ranking[i].points_2022})
@@ -235,11 +233,6 @@
 
         }
 
-
-        let chartStatus = Chart.getChart("scatter_canvas"); // <canvas> id
-        if (chartStatus != undefined) {
-            chartStatus.destroy();
-        }
 
         const data_scatter = {
             datasets: [{
@@ -276,6 +269,10 @@
                 }
             },
             plugins: {
+                title: {
+                    text: 'Scatterplot for Ranking vs Goals',
+                    display:true
+                },
                 tooltip: {
                     callbacks: {
                         label: function (ctx) {
@@ -430,6 +427,10 @@
             maintainAspectRatio: false,
             animation: false,
             plugins: {
+                title: {
+                    text: 'Sankey diagram for country/tactic/match outcome',
+                    display:true
+                },
                 tooltip: {
                     callbacks: {
                         label: function (ctx) {
@@ -472,7 +473,24 @@
      * @returns {string[]|*[]} - array of strings representing hex colors
      */
     function get_colors(selected_team) {
-        const teamColors = ["#FF5733", "#FFD700", "#00FF00", "#FF1493", "#00CED1", "#FF4500", "#8A2BE2", "#32CD32", "#FF6347", "#1E90FF", "#FF69B4", "#00FF7F", "#FF8C00", "#8B008B", "#9ACD32", "#FF00FF"];
+        const  teamColors= [
+            "#D55E00", // Red
+            "#0072B2", // Blue
+            "#009E73", // Green
+            "#CC79A7", // Purple
+            "#F0E442", // Orange
+            "#56B4E9", // Teal
+            "#FF007F", // Pink
+            "#E69F00", // Yellow
+            "#00BFC4", // Turquoise
+            "#F8766D", // Magenta
+            "#7CAE00", // Lime
+            "#762A83", // Violet
+            "#FFD92F", // Amber
+            "#00AEEF", // Cyan
+            "#4E79A7", // Indigo
+            "#B8D845"  // Chartreuse
+        ];
         const return_colors = []
         if (selected_team == undefined) {
             return teamColors
